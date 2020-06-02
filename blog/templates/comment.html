@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+
+{%block content%}
+<div id="main">
+   <br>
+
+
+   <div class="row">
+      <div class="col-md-12">
+         <div class="card">
+            <div v-for="(p,index) in posts" :key="p.id" class="card">
+               <div class="card-header">
+                  [[posts.title]]
+               </div>
+               <div class="card-body">
+                  <div class="row">
+                     <div class="col-md-3">
+                        <img class="img-fluid" :src="[[p.picture]]" alt="" srcset="">
+
+                     </div>
+                     <div class="col-md-9">
+                        <h4 class="card-title">[[p.title]]</h4>
+                        <h6 class="card-subtitle mb-2 text-muted">[[p.category == null ?"":p.category.name]]</h6>
+                        <h5 class="card-subtitle mb-2 text-muted">[[p.date_created]]</h5>
+                        <p class="card-text">[[p.description]]</p>
+                        <button @click="del(p.id,index)" class="btn btn-primary">Delete</button>
+
+                        <button @click="show(p.id)" class="btn btn-primary" data-toggle="modal"
+                           data-target="#exampleModal" data-whatever="@mdo">Show</button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+
+   <!-- <ul>
+    <li v-for="post in posts">[[post.title]]</li>
+</ul> -->
+</div>
+
+{%endblock%}
+
+
+{%block script%}
+
+<script>
+   var id = {{ pk }};
+
+   new Vue({
+      el: '#main',
+      delimiters: ['[[', ']]'],
+      data() {
+         return {
+            posts: [],
+            categories: [],
+            form: {
+               id: '',
+               title: '',
+               category: '',
+               description: "",
+               picture: "",
+            }
+         }
+      },
+
+      methods: {
+         onfilechange(event) {
+            this.form.picture = event.target.files[0]
+
+         },
+
+         show(id) {
+            axios.get('/api/posts/' + id).then(res => {
+               this.form = res.data
+
+            })
+         },
+         save() {
+
+            console.log("Welcome!!")
+            //security para dili mainjeckan ug malicious from hackers
+            head = {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+                  'Content-Type': 'multipart/form-data'
+               }
+            }
+         },
+
+         del(id, index) {
+            console.log(index)
+            axios.delete('/api/posts/' + id, {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken')
+               }
+            }).then(res => {
+
+               this.posts.splice(index, 1)
+            })
+         }
+      },
+      created() {
+
+         axios.get('/api/posts/category/' + id).then(res => {
+            this.posts = res.data
+            console.log(res.data)
+         }
+         )
+      },
+   });
+</script>
+{%endblock%}

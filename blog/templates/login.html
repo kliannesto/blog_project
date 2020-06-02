@@ -1,0 +1,80 @@
+{% extends 'base login.html' %}
+
+
+{%block content%}
+
+<!-- <div class="loginbox">
+  <h1>LOGIN</h1>
+  <div class="textbox">
+    <i class="fa fa-user" aria-hidden="true"></i>
+    <input type="text" placeholder="Username" name="" value="">
+  </div>
+
+  <div class="textbox">
+    <i class="fa fa-lock" aria-hidden="true"></i>
+    <input type="password" placeholder="Password" name="" value="">
+  </div>
+  
+  <input class="btn" type="button" name="" value="Sign In">
+</div> -->
+
+<h1 style="text-align: center;" class="text-white"> Welcome to my Blog Website! </h1>
+<div  class="container mt-5">
+  <div class="row">
+    <div class="col-md-4 offset-4" >
+          <div class="card-header bg-primary text-white">LOGIN</div>
+  <form method="POST">
+    {%csrf_token%}
+  <div class="form">
+    <div id="login">
+      <label class="text-white" for="exampleInputEmail1">Username</label>
+      {{form.username}}
+    </div>
+    <div class="form-group">
+      <label class="text-white" for="exampleInputPassword1">Password</label>
+      {{form.password}}
+      </div>
+    
+    <p class="text"><a href="">forget password?</a></p>
+    <div>
+      <input type="checkbox">
+      <span class="text-white">Keep me signed in</span>
+    </div>
+    <div>
+      <button id="loginbtn" type="submit" class="btn btn-primary">Login</button>
+    </div>
+  </div>
+  </form>
+  <hr>
+  <p class="sign-up text-white">Don't have an account?<a href="">Sign up</a></p>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- <div class="container">
+    <div class="row">
+        <div class="col-md-4 offset-4" >
+            <div class="card p-2 mt-5" >
+                <div class="card-header bg-primary text-white">LOGIN</div>
+                    <form method="POST">
+                        {%csrf_token%}
+
+                            <div class="form-group">
+                              <label for="exampleInputEmail1">Username</label>
+                              {{form.username}}
+                              </div>
+                            <div class="form-group">
+                              <label for="exampleInputPassword1">Password</label>
+                              {{form.password}}
+                              </div>
+                            
+                            <button type="submit" class="btn btn-primary">Login</button>
+                          </form>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+{%endblock%}

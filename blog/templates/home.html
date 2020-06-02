@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+
+
+{%block content%}
+
+<div id="main">
+
+   <br>
+   <div class="transp">
+      <ul>
+         <li>
+      <a data-toggle="modal" data-target="#addPostModal" data-whatever="@mdo">Add New Post </a>
+      </li>
+      </ul>
+   </div>
+   
+   <!-- <button id="savebtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#addPostModal"
+      data-whatever="@mdo">Add New Post</button> -->
+   <br>
+   <div class="modal fade" id="addPostModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title" id="exampleModalLabel">Create New Post</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <form>
+                  <div class="form-group">
+                     <label for="exampleFormControlInput1">Category</label>
+                     <select class="form-control" name="" id="" v-model="form.category">
+                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">[[cat.name]]</option>
+
+                     </select>
+
+                  </div>
+                  <div class="form-group">
+                     <label for="exampleFormControlInput1">Title</label>
+                     <input v-model="form.title" type="text" class="form-control" id="exampleFormControlInput1"
+                        placeholder="Enter Title">
+                  </div>
+
+                  <div class="form-group">
+                     <label for="exampleFormControlInput1">Picture</label>
+                     <input @change="onfilechange" type="file" class="form-control" id="exampleFormControlInput1"
+                        placeholder="Enter Title">
+                  </div>
+
+                  <div class="form-group">
+                     <label for="exampleFormControlTextarea1">Description</label>
+                     <textarea v-model="form.description" class="form-control" id="exampleFormControlTextarea1"
+                        rows="3"></textarea>
+
+                  </div>
+
+               </form>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+               <button v-show="form.id==''" @click="save" data-dismiss="modal" class="btn btn-primary">Save</button>
+            </div>
+         </div>
+      </div>
+   </div>
+   <br>
+
+   <div id="post" class="row">
+      <div class="col-md-12">
+         <div class="card">
+            <div v-for="(p,index) in posts" :key="p.id" class="card">
+               <div class="card-header">
+                  [[p.title]]
+               </div>
+               <br>
+               <div class="card-body">
+                  <div class="row">
+                     <div class="col-md-3">
+                        <img class="img-fluid" :src="[[p.picture]]" alt="" srcset="">
+
+                     </div>
+                     <div class="col-md-9">
+                        <h4 class="card-title">[[p.title]]</h4>
+                        <h6 class="card-subtitle mb-2 text-muted">[[p.category == null ?"":p.category.name]]</h6>
+                        <!-- <h5 class="card-subtitle mb-2 text-muted">[[new Date(new Date() - new Date(p.date_created))]]</h5> -->
+                        <h5 class="card-subtitle mb-2 text-muted">[[formatTime(new Date(p.date_created)) ]]</h5>
+                        <p class="card-text">[[p.description]]</p>
+                        <div class="d-flex justify-content-between">
+                           <div class=" ">
+                              <span>
+                                  <a >[[p.likes.length + p.sads.length + p.hearts.length]] <i v-on:click="like(p.id,index)" 
+                                    v-bind:class="[p.likes.find(u=>u==user) != null ? 'fa fa-thumbs-up text-primary':'fa fa-thumbs-up text-secondary']" > </i>
+                                    <i v-on:click="heart(p.id,index)"  v-bind:class="[p.hearts.find(u=>u==user) != null ?'fa fa-heart text-danger': 'fa fa-heart text-secondary']" ></i>
+                                    <i v-on:click="sad(p.id,index)"  v-bind:class="[p.sads.find(u=>u==user) != null ?'fa fa-frown text-warning': 'fa fa-frown text-secondary']"></i></a>
+                              </span>
+                           </div>
+                           <div>
+                                 <i  @click="del(p.id,index)" class="fa fa-trash-o" style="font-size:28px"></i>
+                                 <i @click="show(p.id)" class="fa fa-edit" style="font-size:28px" data-toggle="modal"
+                                 data-target="#updateModal" data-whatever="@mdo"></i>
+                           </div>
+                           
+                        </div>
+
+                       <div class="feed"> 
+                        <a class="like-btn"></a> 
+                      </div>
+                        <br>
+                        <div class="form-group">
+                           <textarea v-model="commentform.body" placeholder="Type your comments here.." v-model="form.comments" class="form-control" id="exampleFormControlTextarea1"
+                              rows="3" ></textarea>
+                              
+                              <td><input @click= "comment(p.id)" class="btn btn-primary" value="Submit"> </td>
+                        </div>
+                        <div :id="[['a'+p.id]]" role="tablist"></div>
+                        <a data-toggle="collapse" :href="[['#'+p.id]]" aria-expanded="false" :aria-controls="[['#'+p.id]]">
+                           comments
+                         </a>
+                         <div class="card p-3" :id="p.id" class="collapse show" role="tabpanel" aria-labelledby="headingOne" :data-parent="[['#a'+p.id]]">
+                           
+                           <div class="card mb-2 " v-for="(c,i) in p.comments " :id="i">
+                              <div class="card-header d-flex justify-content-between">
+                               <h6 >[[c.user.username]]</h6>
+                                <h6 class="card-subtitle mb-2 text-muted">[[formatTime(new Date(c.date_created)) ]]</h6>
+                              </div>
+                              <div class="card-body">
+                                
+                                <p class="card-text">[[c.body]]</p>
+                                
+                                
+                              </div>
+                            </div>
+ 
+                        </div>
+                     </div>
+                  </div>
+
+               </div>
+               <br>
+            </div>
+            <div class="p">
+               <br>
+            </div>
+
+            <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+               aria-hidden="true">
+               <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                     <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Update Post</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                           <span aria-hidden="true">&times;</span>
+                        </button>
+                     </div>
+                     <div class="modal-body">
+
+                        <div class="form-group">
+                           <label for="exampleFormControlInput1">Category</label>
+                           <select class="form-control" name="" id="" v-model="form.category">
+                              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                                 [[cat.name]]</option>
+
+                           </select>
+
+                        </div>
+                        <div class="form-group">
+                           <label for="exampleFormControlInput1">Title</label>
+                           <input v-model="form.title" type="text" class="form-control" id="exampleFormControlInput1"
+                              placeholder="Enter Title">
+                        </div>
+
+                        <div class="form-group">
+
+                           <label for="exampleFormControlInput1">Picture</label>
+                           <input @change="onfilechange" type="file" class="form-control" id="exampleFormControlInput1"
+                              placeholder="Enter Title">
+                           <p style="font-size: 12px;" class="lead">[[form.picture]]</p>
+                        </div>
+
+                        <div class="form-group">
+                           <label for="exampleFormControlTextarea1">Description</label>
+                           <textarea v-model="form.description" class="form-control" id="exampleFormControlTextarea1"
+                              rows="3"></textarea>
+                        </div>
+
+                     </div>
+
+                     <div class="modal-footer">
+                        <button v-show="form.id!=''" @click="update(form.id)" data-dismiss="modal"
+                           class="btn btn-primary">Save Changes</button>
+                        <!-- <button class="btn btn-primary"  @click="update(form.id)"
+                                       data-dismiss="modal" data-whatever="@mdo">Save Changes</button> -->
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <br>
+</div>
+
+
+{%endblock%}
+ <style>
+    .likecolor{
+      color: blue;
+    }
+    .unlikecolor{
+       color: gray;
+    }
+ </style>
+{%block script%}
+<script>
+   var id = {{ request.user.id }}
+
+   var periods = {
+  month: 30 * 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  day: 24 * 60 * 60 * 1000,
+  hour: 60 * 60 * 1000,
+  minute: 60 * 1000
+};
+
+   new Vue({
+      el: '#main',
+      delimiters: ['[[', ']]'],
+      data() {
+         return {
+            likecolor: "text-danger",
+            posts: [],
+            categories: [],
+            user: id,
+            commentform: {
+               post: "",
+               user: id,
+               body: "",
+            },
+
+            user: id,
+            form: {
+               id: '',
+               title: '',
+               category: '',
+               description: "",
+               picture: "",
+               author: "",
+            }
+         }
+      },
+
+      //functionality sa document object model(DOM)
+      methods: {
+         formatTime(timeCreated) {
+  var diff = Date.now() - timeCreated;
+
+  if (diff > periods.month) {
+    // it was at least a month ago
+    return Math.floor(diff / periods.month) + "M";
+  } else if (diff > periods.week) {
+    return Math.floor(diff / periods.week) + "w";
+  } else if (diff > periods.day) {
+    return Math.floor(diff / periods.day) + "d";
+  } else if (diff > periods.hour) {
+    return Math.floor(diff / periods.hour) + "h";
+  } else if (diff > periods.minute) {
+    return Math.floor(diff / periods.minute) + "m";
+  }
+  return "Just now";
+},
+
+         onfilechange(event) {
+            this.form.picture = ""
+            this.form.picture = event.target.files[0]
+
+         },
+         show(id) {
+            axios.get('/api/posts/' + id).then(res => {
+               this.form = res.data
+
+            })
+         },
+         comment(id) {
+            head = {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken')
+               }
+            }
+            this.commentform.post=id
+            axios.post('/api/comments/', this.commentform, head).then(res=>{
+               axios.get('/api/postwithcomments').then(response => {
+                  this.posts = response.data
+                  this.commentform.body=""
+                  this.comments.unshift(response.data)
+               })
+            })
+         },
+         like(postid, index) {
+            axios.get('/api/post/like/' + postid).then(res => {
+               console.log(res.data.hearts.length+res.data.likes.length)
+               Vue.set(this.posts,index,res.data)
+            })
+         },
+         heart(postid, index) {
+            console.log(index)
+            axios.get('/api/post/hearts/' + postid).then(res => {
+               console.log(res.data.hearts.length+res.data.likes.length)
+               Vue.set(this.posts,index,res.data)
+            })
+         },
+         sad(postid, index) {
+            axios.get('/api/post/sads/' + postid).then(res => {
+               
+               Vue.set(this.posts,index,res.data)
+            })
+         },
+         
+         
+         update(id) {
+            head = {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken')
+               }
+            }
+
+            var form = new FormData()
+            form.append('category', this.form.category)
+            form.append('title', this.form.title)
+            form.append('description', this.form.description)
+            form.append('picture', this.form.picture)
+
+            axios.put('/api/posts/' + id + '/', form, head).then(res => {
+               //to clear data
+               this.form.title = ""
+               this.form.description = ""
+               this.form.id = ""
+               axios.get('/api/postwithcomments').then(response => {
+                  this.posts = response.data
+               })
+            })
+         },
+
+         save() {
+            console.log("Welcome!!")
+            //security para dili mainjeckan ug malicious from hackers
+            head = {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+                  'Content-Type': 'multipart/form-data'
+               }
+            }
+            var form = new FormData()
+            form.append('category', this.form.category)
+            form.append('title', this.form.title)
+            form.append('description', this.form.description)
+            form.append('picture', this.form.picture)
+            // form.append('author', this.form.author)
+
+            axios.post('/api/posts/', form, head).then(res => {
+               //to push data from rest which holds object
+               this.posts.unshift(res.data)
+               this.form.title = ""
+               this.form.description = ""
+            })
+         },
+
+         del(id, index) {
+            console.log(index)
+            axios.delete('/api/posts/' + id, {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken')
+               }
+            }).then(res => {
+               this.posts.splice(index, 1)
+            })
+         }
+      },
+      //motrigger ineg load sa page, moconsume para iload ang lifecycle sa vue
+      created() {
+         axios.get('/api/postwithcomments').then(res => {
+            this.posts = res.data
+            console.log('test21')
+         })
+         axios.get('/api/categories').then(res => {
+            this.categories = res.data
+         })
+      },
+      computed: {
+         title() {
+            return this.form.title
+         },
+         total() {
+            return this.num1 + " " + this.num2
+         },
+      }
+   })
+</script>
+{%endblock%}

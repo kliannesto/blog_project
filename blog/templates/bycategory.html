@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+
+{%block content%}
+<div id="main">
+   <br>
+
+
+   <div class="row">
+      <div class="col-md-12">
+         <div class="card">
+            <div v-for="(p,index) in posts" :key="p.id" class="card">
+               <div class="card-header">
+                  [[posts.title]]
+               </div>
+               <div class="card-body">
+                  <div class="row">
+                     <div class="col-md-3">
+                        <img class="img-fluid" :src="[[p.picture]]" alt="" srcset="">
+
+                     </div>
+                     <div class="col-md-9">
+                        <h4 class="card-title">[[p.title]]</h4>
+                        <h6 class="card-subtitle mb-2 text-muted">[[p.category == null ?"":p.category.name]]</h6>
+                        <h5 class="card-subtitle mb-2 text-muted">[[formatTime(new Date(p.date_created)) ]]</h5>
+                        <p class="card-text">[[p.description]]</p>
+                        <button @click="del(p.id,index)" class="btn btn-primary">Delete</button>
+
+                        <button @click="show(p.id)" class="btn btn-primary" data-toggle="modal"
+                           data-target="#exampleModal" data-whatever="@mdo">Show</button>
+                        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+                           aria-labelledby="exampleModalLabel" aria-hidden="true">
+                           <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                 <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Update Post</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                       <span aria-hidden="true">&times;</span>
+                                    </button>
+                                 </div>
+                                 <div class="modal-body">
+                                    <form>
+                                       <div class="form-group">
+                                          <label for="exampleFormControlInput1">Category</label>
+                                          <select class="form-control" name="" id="" v-model="form.category">
+                                             <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                                                [[cat.name]]</option>
+
+                                          </select>
+
+                                       </div>
+                                       <div class="form-group">
+                                          <label for="exampleFormControlInput1">Title</label>
+                                          <input v-model="form.title" type="text" class="form-control"
+                                             id="exampleFormControlInput1" placeholder="Enter Title">
+                                       </div>
+
+                                       <div class="form-group">
+                                          <label for="exampleFormControlInput1">Picture</label>
+                                          <input @change="onfilechange" type="file" class="form-control"
+                                             id="exampleFormControlInput1" placeholder="Enter Title">
+                                       </div>
+
+                                       <div class="form-group">
+                                          <label for="exampleFormControlTextarea1">Description</label>
+                                          <textarea v-model="form.description" class="form-control"
+                                             id="exampleFormControlTextarea1" rows="3"></textarea>
+
+                                       </div>
+
+                                    </form>
+                                 </div>
+                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button v-show="form.id==''" @click="save" class="btn btn-primary">Save</button>
+                                 </div>
+
+                              </div>
+                           </div>
+                        </div>
+
+
+                     </div>
+
+                  </div>
+
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+
+   <!-- <ul>
+    <li v-for="post in posts">[[post.title]]</li>
+</ul> -->
+</div>
+
+{%endblock%}
+
+
+{%block script%}
+
+<script>
+   var id = {{ pk }};
+
+   var periods = {
+  month: 30 * 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  day: 24 * 60 * 60 * 1000,
+  hour: 60 * 60 * 1000,
+  minute: 60 * 1000
+};
+
+   new Vue({
+      el: '#main',
+      delimiters: ['[[', ']]'],
+      data() {
+         return {
+            posts: [],
+            categories: [],
+            form: {
+               id: '',
+               title: '',
+               category: '',
+               description: "",
+               picture: "",
+            }
+         }
+      },
+
+      methods: {
+         formatTime(timeCreated) {
+  var diff = Date.now() - timeCreated;
+
+  if (diff > periods.month) {
+    // it was at least a month ago
+    return Math.floor(diff / periods.month) + "M";
+  } else if (diff > periods.week) {
+    return Math.floor(diff / periods.week) + "w";
+  } else if (diff > periods.day) {
+    return Math.floor(diff / periods.day) + "d";
+  } else if (diff > periods.hour) {
+    return Math.floor(diff / periods.hour) + "h";
+  } else if (diff > periods.minute) {
+    return Math.floor(diff / periods.minute) + "m";
+  }
+  return "Just now";
+},
+
+         onfilechange(event) {
+            this.form.picture = event.target.files[0]
+
+         },
+
+         show(id) {
+            axios.get('/api/posts/' + id).then(res => {
+               this.form = res.data
+
+            })
+         },
+         save() {
+
+            console.log("Welcome!!")
+            //security para dili mainjeckan ug malicious from hackers
+            head = {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+                  'Content-Type': 'multipart/form-data'
+               }
+            }
+         },
+
+         del(id, index) {
+            console.log(index)
+            axios.delete('/api/posts/' + id, {
+               headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken')
+               }
+            }).then(res => {
+
+               this.posts.splice(index, 1)
+            })
+         }
+      },
+      created() {
+
+         axios.get('/api/posts/category/' + id).then(res => {
+            this.posts = res.data
+            console.log(res.data)
+         }
+         )
+      },
+   });
+</script>
+{%endblock%}
